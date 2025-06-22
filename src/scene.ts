@@ -22,9 +22,9 @@ export class SceneSetup {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(this.renderer.domElement);
 
-    // Set up camera
-    this.camera.position.set(0, 5, 15);
-    this.camera.lookAt(0, 0, 0);
+    // Set up camera for hierarchical view
+    this.camera.position.set(0, 3, 20);
+    this.camera.lookAt(0, 3, 0);
 
     // Add lights
     this.addLights();

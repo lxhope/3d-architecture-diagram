@@ -15,33 +15,56 @@ export class ComponentRenderer {
   public createComponent(config: ComponentConfig): THREE.Group {
     const group = new THREE.Group();
     
-    // Create main box
+    // Create beautiful rounded box with enhanced materials
     const geometry = new THREE.BoxGeometry(...config.size);
-    const material = new THREE.MeshLambertMaterial({ 
+    
+    // Enhanced material with better visual properties
+    const material = new THREE.MeshPhongMaterial({ 
       color: config.color,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.9,
+      shininess: 100,
+      specular: 0x444444,
+      emissive: new THREE.Color(config.color).multiplyScalar(0.1)
     });
+    
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     
-    // Add wireframe outline
-    const wireframe = new THREE.WireframeGeometry(geometry);
-    const line = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ 
+    // Add subtle edge highlighting instead of wireframe
+    const edges = new THREE.EdgesGeometry(geometry);
+    const edgeMaterial = new THREE.LineBasicMaterial({ 
       color: 0xffffff, 
-      opacity: 0.3,
-      transparent: true 
-    }));
+      opacity: 0.6,
+      transparent: true,
+      linewidth: 2
+    });
+    const edgeLines = new THREE.LineSegments(edges, edgeMaterial);
     
-    // Create label
+    // Add subtle glow effect
+    const glowGeometry = new THREE.BoxGeometry(
+      config.size[0] * 1.05, 
+      config.size[1] * 1.05, 
+      config.size[2] * 1.05
+    );
+    const glowMaterial = new THREE.MeshBasicMaterial({
+      color: config.color,
+      transparent: true,
+      opacity: 0.15,
+      side: THREE.BackSide
+    });
+    const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+    
+    // Create enhanced label
     const label = this.createLabel(config.name, config.type);
-    label.position.y = config.size[1] / 2 + 0.5;
+    label.position.y = config.size[1] / 2 + 0.8;
     
     // Add components to group
-    group.add(mesh);
-    group.add(line);
-    group.add(label);
+    group.add(glowMesh);  // Glow first (background)
+    group.add(mesh);      // Main component
+    group.add(edgeLines); // Edge highlights
+    group.add(label);     // Label on top
     
     // Set position
     group.position.set(...config.position);
@@ -59,41 +82,77 @@ export class ComponentRenderer {
   private createLabel(text: string, type: ComponentType): THREE.Group {
     const labelGroup = new THREE.Group();
     
-    // Create canvas for text
+    // Create canvas for enhanced text
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
-    canvas.width = 256;
-    canvas.height = 64;
+    canvas.width = 512;
+    canvas.height = 128;
     
-    // Configure text style
-    context.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    // Enhanced text styling with gradient background
+    const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+    gradient.addColorStop(1, 'rgba(240, 240, 240, 0.95)');
     
-    context.fillStyle = 'white';
-    context.font = 'Bold 16px Arial';
+    // Rounded rectangle background
+    const cornerRadius = 10;
+    context.fillStyle = gradient;
+    this.roundRect(context, 10, 10, canvas.width - 20, canvas.height - 20, cornerRadius);
+    context.fill();
+    
+    // Add subtle border
+    context.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+    context.lineWidth = 2;
+    this.roundRect(context, 10, 10, canvas.width - 20, canvas.height - 20, cornerRadius);
+    context.stroke();
+    
+    // Enhanced text rendering
+    context.fillStyle = '#333333';
+    context.font = 'Bold 24px Arial, sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     
-    // Draw text
-    context.fillText(text, canvas.width / 2, canvas.height / 2 - 5);
-    context.font = '12px Arial';
-    context.fillStyle = '#cccccc';
-    context.fillText(`[${type}]`, canvas.width / 2, canvas.height / 2 + 15);
+    // Draw main text with shadow
+    context.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    context.shadowBlur = 2;
+    context.shadowOffsetX = 1;
+    context.shadowOffsetY = 1;
+    context.fillText(text, canvas.width / 2, canvas.height / 2 - 8);
+    
+    // Draw type label
+    context.shadowColor = 'transparent';
+    context.font = '16px Arial, sans-serif';
+    context.fillStyle = '#666666';
+    context.fillText(`[${type}]`, canvas.width / 2, canvas.height / 2 + 20);
     
     // Create texture and material
     const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
     const material = new THREE.MeshBasicMaterial({ 
       map: texture,
       transparent: true,
       side: THREE.DoubleSide
     });
     
-    // Create plane for text
-    const geometry = new THREE.PlaneGeometry(2, 0.5);
+    // Create plane for text with better proportions
+    const geometry = new THREE.PlaneGeometry(3, 0.75);
     const plane = new THREE.Mesh(geometry, material);
     
     labelGroup.add(plane);
     return labelGroup;
+  }
+
+  private roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
   }
 
   private setupEventListeners() {
@@ -139,16 +198,6 @@ export class ComponentRenderer {
   }
 
   public animateComponents() {
-    const time = Date.now() * 0.001;
-    
-    this.components.forEach((component, _name) => {
-      // Subtle floating animation
-      component.position.y += Math.sin(time + component.position.x) * 0.005;
-      
-      // Gentle rotation for blockchain components
-      if (component.userData.type === ComponentType.BLOCKCHAIN) {
-        component.rotation.y += 0.005;
-      }
-    });
+    // Animations removed for static display
   }
 }

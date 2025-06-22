@@ -40,11 +40,28 @@ class ArchitectureDiagram {
   }
 
   private addGrid() {
-    const size = 50;
-    const divisions = 50;
+    const size = 30;
+    const divisions = 30;
     const gridHelper = new THREE.GridHelper(size, divisions, 0x444444, 0x222222);
     gridHelper.position.y = -5;
     this.sceneSetup.scene.add(gridHelper);
+
+    // Add vertical reference planes for better hierarchical visualization
+    const planeGeometry = new THREE.PlaneGeometry(20, 0.1);
+    const planeMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0x666666, 
+      transparent: true, 
+      opacity: 0.3 
+    });
+
+    // Add horizontal separators between layers
+    const layerHeights = [10, 7, 4, 1, -2];
+    layerHeights.forEach(height => {
+      const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+      plane.rotation.x = -Math.PI / 2;
+      plane.position.y = height - 0.5;
+      this.sceneSetup.scene.add(plane);
+    });
   }
 
   private addLegend() {
@@ -62,7 +79,7 @@ class ArchitectureDiagram {
       const material = new THREE.MeshLambertMaterial({ color: item.color });
       const cube = new THREE.Mesh(geometry, material);
       
-      cube.position.set(-12, 6 - index * 1.2, 0);
+      cube.position.set(-12, 8 - index * 1.5, 0);
       this.sceneSetup.scene.add(cube);
 
       // Add text label (simplified for this example)
@@ -81,7 +98,7 @@ class ArchitectureDiagram {
         transparent: true 
       });
       const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-      textMesh.position.set(-10.5, 6 - index * 1.2, 0);
+      textMesh.position.set(-10.5, 8 - index * 1.5, 0);
       this.sceneSetup.scene.add(textMesh);
     });
   }

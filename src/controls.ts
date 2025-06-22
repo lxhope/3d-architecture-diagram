@@ -7,8 +7,8 @@ export class CameraControls {
   private mouseStart = new THREE.Vector2();
   private mouseEnd = new THREE.Vector2();
   private spherical = new THREE.Spherical();
-  private target = new THREE.Vector3(0, 0, 0);
-  private distance = 15;
+  private target = new THREE.Vector3(0, 3, 0);
+  private distance = 20;
   private minDistance = 5;
   private maxDistance = 50;
 

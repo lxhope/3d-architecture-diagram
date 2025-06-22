@@ -25,13 +25,14 @@ export class ConnectionRenderer {
   private createConnection(from: THREE.Vector3, to: THREE.Vector3, type: string): THREE.Group {
     const group = new THREE.Group();
     
-    // Create curved path
+    // Create curved path for hierarchical flow
+    const midY = (from.y + to.y) / 2;
     const curve = new THREE.QuadraticBezierCurve3(
       from,
       new THREE.Vector3(
         (from.x + to.x) / 2,
-        Math.max(from.y, to.y) + 2,
-        (from.z + to.z) / 2
+        midY,
+        (from.z + to.z) / 2 + 1
       ),
       to
     );
@@ -75,43 +76,11 @@ export class ConnectionRenderer {
     return group;
   }
 
-  private addConnectionParticles(group: THREE.Group, curve: THREE.QuadraticBezierCurve3, color: number) {
-    const particleCount = 3;
-    
-    for (let i = 0; i < particleCount; i++) {
-      const geometry = new THREE.SphereGeometry(0.05, 8, 8);
-      const material = new THREE.MeshBasicMaterial({ 
-        color,
-        transparent: true,
-        opacity: 0.8
-      });
-      const particle = new THREE.Mesh(geometry, material);
-      
-      particle.userData = {
-        curve,
-        progress: i / particleCount,
-        speed: 0.01 + Math.random() * 0.02
-      };
-      
-      group.add(particle);
-    }
+  private addConnectionParticles(_group: THREE.Group, _curve: THREE.QuadraticBezierCurve3, _color: number) {
+    // Particles removed for static display
   }
 
   public animateConnections() {
-    this.connections.forEach(connectionGroup => {
-      connectionGroup.children.forEach(child => {
-        if (child instanceof THREE.Mesh && child.userData.curve) {
-          const data = child.userData;
-          data.progress += data.speed;
-          
-          if (data.progress > 1) {
-            data.progress = 0;
-          }
-          
-          const position = data.curve.getPoint(data.progress);
-          child.position.copy(position);
-        }
-      });
-    });
+    // Connection animations removed for static display
   }
 }
