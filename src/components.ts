@@ -19,13 +19,16 @@ export class ComponentRenderer {
     const geometry = new THREE.BoxGeometry(...config.size);
     
     // Enhanced material with better visual properties
-    const material = new THREE.MeshPhongMaterial({ 
+    const material = new THREE.MeshPhysicalMaterial({ 
       color: config.color,
       transparent: true,
-      opacity: 0.9,
-      shininess: 100,
-      specular: 0x444444,
-      emissive: new THREE.Color(config.color).multiplyScalar(0.1)
+      opacity: 0.85,
+      metalness: 0.1,
+      roughness: 0.2,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.1,
+      reflectivity: 0.8,
+      emissive: new THREE.Color(config.color).multiplyScalar(0.05)
     });
     
     const mesh = new THREE.Mesh(geometry, material);

@@ -15,11 +15,14 @@ export class SceneSetup {
   }
 
   private init() {
-    // Set up renderer
+    // Set up renderer with enhanced quality
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0x1a1a1a);
+    this.renderer.setClearColor(0x0a0a0a); // Darker background for better contrast
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.2;
     document.body.appendChild(this.renderer.domElement);
 
     // Set up camera for hierarchical view
@@ -34,26 +37,41 @@ export class SceneSetup {
   }
 
   private addLights() {
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    // Enhanced ambient light for better visibility
+    const ambientLight = new THREE.AmbientLight(0x404060, 0.4);
     this.scene.add(ambientLight);
 
-    // Directional light
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 10, 5);
+    // Main directional light with enhanced shadows
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    directionalLight.position.set(15, 15, 10);
     directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.mapSize.width = 4096;
+    directionalLight.shadow.mapSize.height = 4096;
+    directionalLight.shadow.camera.near = 0.1;
+    directionalLight.shadow.camera.far = 50;
+    directionalLight.shadow.camera.left = -20;
+    directionalLight.shadow.camera.right = 20;
+    directionalLight.shadow.camera.top = 20;
+    directionalLight.shadow.camera.bottom = -20;
     this.scene.add(directionalLight);
 
-    // Point lights for better illumination
-    const pointLight1 = new THREE.PointLight(0x4CAF50, 0.5, 20);
-    pointLight1.position.set(-5, 5, 5);
-    this.scene.add(pointLight1);
+    // Accent lights for dramatic effect
+    const accentLight1 = new THREE.SpotLight(0x00ff88, 0.8, 30, Math.PI / 6, 0.5);
+    accentLight1.position.set(-8, 12, 8);
+    accentLight1.target.position.set(0, 4, 0);
+    this.scene.add(accentLight1);
+    this.scene.add(accentLight1.target);
 
-    const pointLight2 = new THREE.PointLight(0x2196F3, 0.5, 20);
-    pointLight2.position.set(5, 5, 5);
-    this.scene.add(pointLight2);
+    const accentLight2 = new THREE.SpotLight(0x0088ff, 0.8, 30, Math.PI / 6, 0.5);
+    accentLight2.position.set(8, 12, 8);
+    accentLight2.target.position.set(0, 4, 0);
+    this.scene.add(accentLight2);
+    this.scene.add(accentLight2.target);
+
+    // Rim light for better definition
+    const rimLight = new THREE.DirectionalLight(0x8888ff, 0.3);
+    rimLight.position.set(-10, 5, -10);
+    this.scene.add(rimLight);
   }
 
   private onWindowResize() {

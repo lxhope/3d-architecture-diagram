@@ -40,65 +40,92 @@ class ArchitectureDiagram {
   }
 
   private addGrid() {
-    const size = 30;
-    const divisions = 30;
-    const gridHelper = new THREE.GridHelper(size, divisions, 0x444444, 0x222222);
+    // Enhanced grid with better visibility
+    const size = 40;
+    const divisions = 40;
+    const gridHelper = new THREE.GridHelper(size, divisions, 0x00aaff, 0x003366);
     gridHelper.position.y = -5;
+    gridHelper.material.opacity = 0.6;
+    gridHelper.material.transparent = true;
     this.sceneSetup.scene.add(gridHelper);
 
-    // Add vertical reference planes for better hierarchical visualization
-    const planeGeometry = new THREE.PlaneGeometry(20, 0.1);
-    const planeMaterial = new THREE.MeshBasicMaterial({ 
-      color: 0x666666, 
-      transparent: true, 
-      opacity: 0.3 
+    // Add glowing layer separators
+    const layerHeights = [10, 7, 4, 1, -2];
+    layerHeights.forEach((height, index) => {
+      const geometry = new THREE.RingGeometry(8, 12, 32);
+      const material = new THREE.MeshBasicMaterial({ 
+        color: index % 2 === 0 ? 0x0088ff : 0x00ff88,
+        transparent: true, 
+        opacity: 0.15,
+        side: THREE.DoubleSide
+      });
+      const ring = new THREE.Mesh(geometry, material);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = height - 0.5;
+      this.sceneSetup.scene.add(ring);
     });
 
-    // Add horizontal separators between layers
-    const layerHeights = [10, 7, 4, 1, -2];
-    layerHeights.forEach(height => {
-      const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-      plane.rotation.x = -Math.PI / 2;
-      plane.position.y = height - 0.5;
-      this.sceneSetup.scene.add(plane);
-    });
+    // Add subtle fog for depth
+    this.sceneSetup.scene.fog = new THREE.Fog(0x0a0a0a, 25, 60);
   }
 
   private addLegend() {
     const legendItems = [
-      { color: '#4CAF50', label: 'Client Layer' },
-      { color: '#FF9800', label: 'Gateway Layer' },
-      { color: '#2196F3', label: 'Service Layer' },
-      { color: '#F44336', label: 'Security Layer' },
-      { color: '#9C27B0', label: 'Database Layer' },
-      { color: '#FFD700', label: 'Blockchain Layer' }
+      { color: '#00ff88', label: 'Client Layer' },
+      { color: '#ff6600', label: 'Gateway Layer' },
+      { color: '#0088ff', label: 'Service Layer' },
+      { color: '#ff3366', label: 'Security Layer' },
+      { color: '#aa00ff', label: 'Database Layer' },
+      { color: '#ffaa00', label: 'Blockchain Layer' }
     ];
 
+    // Create legend background panel
+    const panelGeometry = new THREE.PlaneGeometry(5, 10);
+    const panelMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0x1a1a1a,
+      transparent: true,
+      opacity: 0.8
+    });
+    const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+    panel.position.set(-13, 5, 0);
+    this.sceneSetup.scene.add(panel);
+
     legendItems.forEach((item, index) => {
-      const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-      const material = new THREE.MeshLambertMaterial({ color: item.color });
+      // Enhanced legend cubes with glow
+      const geometry = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+      const material = new THREE.MeshPhysicalMaterial({ 
+        color: item.color,
+        emissive: new THREE.Color(item.color).multiplyScalar(0.3),
+        metalness: 0.1,
+        roughness: 0.2
+      });
       const cube = new THREE.Mesh(geometry, material);
-      
-      cube.position.set(-12, 8 - index * 1.5, 0);
+      cube.castShadow = true;
+      cube.position.set(-14.5, 8 - index * 1.5, 0);
       this.sceneSetup.scene.add(cube);
 
-      // Add text label (simplified for this example)
-      const textGeometry = new THREE.PlaneGeometry(2, 0.3);
+      // Enhanced text labels
       const canvas = document.createElement('canvas');
       canvas.width = 256;
-      canvas.height = 32;
+      canvas.height = 64;
       const context = canvas.getContext('2d')!;
-      context.fillStyle = 'white';
-      context.font = '16px Arial';
-      context.fillText(item.label, 10, 20);
+      
+      context.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      
+      context.fillStyle = '#333333';
+      context.font = 'Bold 18px Arial, sans-serif';
+      context.textAlign = 'left';
+      context.textBaseline = 'middle';
+      context.fillText(item.label, 15, canvas.height / 2);
       
       const texture = new THREE.CanvasTexture(canvas);
       const textMaterial = new THREE.MeshBasicMaterial({ 
         map: texture,
         transparent: true 
       });
-      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-      textMesh.position.set(-10.5, 8 - index * 1.5, 0);
+      const textMesh = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.75), textMaterial);
+      textMesh.position.set(-11.5, 8 - index * 1.5, 0);
       this.sceneSetup.scene.add(textMesh);
     });
   }
